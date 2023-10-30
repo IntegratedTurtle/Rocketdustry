@@ -1,5 +1,5 @@
+use crate::mapsetup::Block;
 use bevy::prelude::*;
-use ordered_float::{self, OrderedFloat};
 use std::collections::HashSet;
 use umath::FF32;
 
@@ -7,14 +7,6 @@ use umath::FF32;
 pub struct HashSetFloat {
     pub x: FF32,
     pub y: FF32,
-}
-
-#[derive(PartialEq, Debug)]
-pub enum Block {
-    Gras,
-    Iron,
-    Stone,
-    Mud,
 }
 
 #[derive(Component, Debug, PartialEq)]

@@ -1,12 +1,12 @@
 mod camera;
 mod components;
+mod mapsetup;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
 use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
+use mapsetup::MapAsPng;
 use std::collections::HashSet;
 use umath::FF32;
-
-pub const TEXTURESIZE: f32 = 64.0;
 
 fn main() {
     App::new()
@@ -14,9 +14,10 @@ fn main() {
         .add_event::<GetNeighbours>()
         .init_resource::<CameraView>()
         .init_resource::<CameraScale>()
+        .init_resource::<MapAsPng>()
         .add_systems(
             Startup,
-            (spawn_blocks, camera::spawn_camera, get_neighbours),
+            (mapsetup::spawn_blocks, camera::spawn_camera, get_neighbours),
         )
         .add_systems(Update, (get_neighbours,))
         .run()
@@ -25,45 +26,6 @@ fn main() {
 #[derive(Event)]
 pub struct GetNeighbours(u32);
 
-pub fn spawn_blocks(
-    mut get_neigbour_event: EventWriter<GetNeighbours>,
-    mut commands: Commands,
-    window_query: Query<&Window, With<PrimaryWindow>>,
-    asset_server: Res<AssetServer>,
-) {
-    let x_max: usize = 3;
-    let y_max: usize = 3;
-    for x in 0..x_max {
-        for y in 0..y_max {
-            commands.spawn((
-                SpriteBundle {
-                    transform: Transform::from_xyz(
-                        (x as f32 * TEXTURESIZE),
-                        (y as f32 * TEXTURESIZE),
-                        0.0,
-                    ),
-                    texture: asset_server.load("sprites/Gras.png"),
-                    ..default()
-                },
-                EnviromentBlock {
-                    location: HashSetFloat {
-                        x: unsafe { FF32::new(x as f32) },
-                        y: unsafe { FF32::new(y as f32) },
-                    },
-                    block: components::Block::Gras,
-                    neighbour: EnviromentBlock::get_neighbours(
-                        unsafe { FF32::new(x as f32) },
-                        unsafe { FF32::new(y as f32) },
-                        unsafe { FF32::new(x_max as f32) },
-                        unsafe { FF32::new(y_max as f32) },
-                    ),
-                },
-                TestValue { value: 3 },
-            ));
-        }
-    }
-    get_neigbour_event.send(GetNeighbours(45));
-}
 // ! How to send Information
 pub fn get_neighbours(
     // value_query: Query<&mut TestValue,With<EnviromentBlock>>,
@@ -98,11 +60,3 @@ pub fn print_values(test_value: Query<&TestValue>) {
         println!("{}", value.value);
     }
 }
-
-// pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
-//     let window = window_query.get_single().unwrap();
-//     commands.spawn(Camera2dBundle {
-//         transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
-//         ..default()
-//     });
-// }

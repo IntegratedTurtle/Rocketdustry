@@ -47,8 +47,10 @@ pub fn spawn_camera(
     });
 }
 
-// SHOW FUNKTION
-// How to move a camera
+/// # How to move a camera
+/// The Query gets the camera
+/// The query is an interator, because there could be multible cameras and the forloop extracts the camera out of the iterator
+/// Then we grow the translation by 1 every frame and thus move the camera to the right
 pub fn move_camera(mut camera_query: Query<&mut Transform, With<Camera2d>>) {
     for mut transform in &mut camera_query {
         transform.translation.x += 1.0;
@@ -56,8 +58,12 @@ pub fn move_camera(mut camera_query: Query<&mut Transform, With<Camera2d>>) {
     }
 }
 
-// SHOW FUNKTION
-// How to zoom out a camera
+/// # How to zoom a camera
+/// The Query gets the camera
+/// The ResMut, gets a global Scale Ressource, so multible things can change the scale
+/// we increase the ResMut
+/// Extract the camera out of the iterator query
+/// Place the ScaleRes into the cameras scale
 pub fn zoom_out_camera(
     mut camera_query: Query<&mut Transform, With<Camera2d>>,
     mut camera_scale: ResMut<CameraScale>,

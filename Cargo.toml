@@ -9,6 +9,7 @@ channel = "nightly"
 
 [dependencies]
 bevy = { version = "0.11.3", features = ["dynamic_linking"] }
+image = "0.24.7"
 ordered-float = "4.1.1"
 rand = "0.8.5"
 umath = "0.0.7"
