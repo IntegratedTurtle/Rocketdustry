@@ -1,5 +1,7 @@
+mod camera;
 mod components;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
+use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
 use std::collections::HashSet;
 use umath::FF32;
@@ -10,8 +12,13 @@ fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
         .add_event::<GetNeighbours>()
-        .add_systems(Startup, (spawn_blocks, spawn_camera, get_neighbours))
-        .add_systems(Update, (get_neighbours, print_values, add_values))
+        .init_resource::<CameraView>()
+        .init_resource::<CameraScale>()
+        .add_systems(
+            Startup,
+            (spawn_blocks, camera::spawn_camera, get_neighbours),
+        )
+        .add_systems(Update, (get_neighbours,))
         .run()
 }
 
@@ -24,7 +31,6 @@ pub fn spawn_blocks(
     window_query: Query<&Window, With<PrimaryWindow>>,
     asset_server: Res<AssetServer>,
 ) {
-    let window = window_query.get_single().unwrap();
     let x_max: usize = 3;
     let y_max: usize = 3;
     for x in 0..x_max {
@@ -32,8 +38,8 @@ pub fn spawn_blocks(
             commands.spawn((
                 SpriteBundle {
                     transform: Transform::from_xyz(
-                        window.width() / 2.0 + (x as f32 * TEXTURESIZE),
-                        window.height() / 2.0 + (y as f32 * TEXTURESIZE),
+                        (x as f32 * TEXTURESIZE),
+                        (y as f32 * TEXTURESIZE),
                         0.0,
                     ),
                     texture: asset_server.load("sprites/Gras.png"),
@@ -76,16 +82,16 @@ pub fn get_neighbours(
     }
 }
 
-pub fn add_values(
-    // value_query: Query<&TestValue>,
-    mut other_value_query: Query<&mut TestValue>,
-) {
-    for value in other_value_query.iter_combinations_mut() {
-        for mut other_value in other_value_query.iter_mut() {
-            other_value.value += value.value;
-        }
-    }
-}
+// pub fn add_values(
+//     // value_query: Query<&TestValue>,
+//     mut other_value_query: Query<&mut TestValue>,
+// ) {
+//     for value in other_value_query.iter_combinations_mut() {
+//         for mut other_value in other_value_query.iter_mut() {
+//             other_value.value += value.value;
+//         }
+//     }
+// }
 
 pub fn print_values(test_value: Query<&TestValue>) {
     for value in test_value.iter() {
@@ -93,10 +99,10 @@ pub fn print_values(test_value: Query<&TestValue>) {
     }
 }
 
-pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
-    let window = window_query.get_single().unwrap();
-    commands.spawn(Camera2dBundle {
-        transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
-        ..default()
-    });
-}
+// pub fn spawn_camera(mut commands: Commands, window_query: Query<&Window, With<PrimaryWindow>>) {
+//     let window = window_query.get_single().unwrap();
+//     commands.spawn(Camera2dBundle {
+//         transform: Transform::from_xyz(window.width() / 2.0, window.height() / 2.0, 0.0),
+//         ..default()
+//     });
+// }
