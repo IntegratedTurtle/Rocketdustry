@@ -9,7 +9,9 @@ channel = "nightly"
 
 [dependencies]
 bevy = { version = "0.11.3", features = ["dynamic_linking"] }
+ordered-float = "4.1.1"
 rand = "0.8.5"
+umath = "0.0.7"
 
 # Enable a small amount of optimization in debug mode
 [profile.dev]
