@@ -1,10 +1,12 @@
 mod camera;
 mod components;
 mod mapsetup;
+mod player;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
 use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
 use mapsetup::MapAsPng;
+use player::PlayerSpawnInfo;
 use std::collections::HashSet;
 use umath::FF32;
 
@@ -15,11 +17,24 @@ fn main() {
         .init_resource::<CameraView>()
         .init_resource::<CameraScale>()
         .init_resource::<MapAsPng>()
+        .init_resource::<PlayerSpawnInfo>()
         .add_systems(
             Startup,
-            (mapsetup::spawn_blocks, camera::spawn_camera, get_neighbours),
+            (
+                mapsetup::spawn_blocks,
+                camera::spawn_camera,
+                get_neighbours,
+                player::spawn_player,
+            ),
         )
-        .add_systems(Update, (get_neighbours,))
+        .add_systems(
+            Update,
+            (
+                get_neighbours,
+                player::player_movement,
+                player::camera_follow_player.after(player::player_movement),
+            ),
+        )
         .run()
 }
 
