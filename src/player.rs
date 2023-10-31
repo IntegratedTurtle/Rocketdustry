@@ -3,6 +3,8 @@ use bevy::prelude::*;
 
 /// Defines how fast the Player is
 const PLAYERSPEED: f32 = 500.0;
+/// How fast the Camera will follow the player
+const CAMERAFOLLOWSPEED: f32 = 2.0;
 
 /// In this struct Information can be collected that will be used to spawn the player
 #[derive(Resource)]
@@ -86,6 +88,6 @@ pub fn camera_follow_player(
         .expect("Could not find camera");
     let distance_x = player_translation.x - camera.translation.x;
     let distance_y = player_translation.y - camera.translation.y;
-    camera.translation.x += distance_x;
-    camera.translation.y += distance_y;
+    camera.translation.x += distance_x * time.delta_seconds() * CAMERAFOLLOWSPEED;
+    camera.translation.y += distance_y * time.delta_seconds() * CAMERAFOLLOWSPEED;
 }
