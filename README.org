@@ -1,6 +1,13 @@
 #+title: Rocketdustry
 
-* Roadmap
+A tower defense game inspired by the project [[https://github.com/Anuken/Mindustry][Mindustry]], developed in Rust, with a primary emphasis on rockets and anti-missile systems.
+
+** Installation
+For a guide on installing Rocketdustry see our [[https://github.com/IntegratedTurtle/Rocketdustry/wiki/How-to-build][Wiki]].
+
+** Roadmap
 + creating a mindustry clone
-* Download
-via git clone
++ implement rockets
++ implement anti-missile systems
+
+
