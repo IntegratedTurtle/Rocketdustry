@@ -1,5 +1,5 @@
 use crate::camera;
-use bevy::prelude::*;
+use bevy::{prelude::*, transform};
 
 /// Defines how fast the Player is
 const PLAYERSPEED: f32 = 500.0;
@@ -63,13 +63,20 @@ pub fn player_movement(
             direction += Vec3::new(0.0, 1.0, 0.0);
         }
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
-            direction += Vec3::new(1.0, -1.0, 0.0);
+            direction += Vec3::new(0.0, -1.0, 0.0);
         }
 
         if direction.length() > 0.0 {
             direction = direction.normalize();
         }
-
+        transform.look_to(
+            Vec3 {
+                x: 0.0,
+                y: 0.0,
+                z: 0.0,
+            },
+            direction * time.delta_seconds(),
+        );
         transform.translation += direction * PLAYERSPEED * time.delta_seconds();
     }
 }
@@ -79,15 +86,12 @@ pub fn camera_follow_player(
     mut camera_query: Query<&mut Transform, (With<Camera2d>, Without<Player>)>,
     time: Res<Time>,
 ) {
-    let player_translation = player_query
-        .get_single()
-        .expect("Could not find player")
-        .translation;
-    let mut camera = camera_query
-        .get_single_mut()
-        .expect("Could not find camera");
-    let distance_x = player_translation.x - camera.translation.x;
-    let distance_y = player_translation.y - camera.translation.y;
-    camera.translation.x += distance_x * time.delta_seconds() * CAMERAFOLLOWSPEED;
-    camera.translation.y += distance_y * time.delta_seconds() * CAMERAFOLLOWSPEED;
+    if let Ok(player) = player_query.get_single() {
+        if let Ok(mut camera) = camera_query.get_single_mut() {
+            let distance_x = player.translation.x - camera.translation.x;
+            let distance_y = player.translation.y - camera.translation.y;
+            camera.translation.x += distance_x * time.delta_seconds() * CAMERAFOLLOWSPEED;
+            camera.translation.y += distance_y * time.delta_seconds() * CAMERAFOLLOWSPEED;
+        }
+    }
 }

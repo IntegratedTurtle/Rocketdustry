@@ -33,6 +33,7 @@ fn main() {
                 get_neighbours,
                 player::player_movement,
                 player::camera_follow_player.after(player::player_movement),
+                // player::player_sprite_rotate,
             ),
         )
         .run()
