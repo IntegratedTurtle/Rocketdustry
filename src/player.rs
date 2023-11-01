@@ -17,7 +17,7 @@ impl Default for PlayerSpawnInfo {
             location: Vec3 {
                 x: 0.0,
                 y: 0.0,
-                z: 0.0,
+                z: 1.0,
             },
         }
     }
@@ -52,31 +52,38 @@ pub fn player_movement(
 ) {
     if let Ok(mut transform) = player_query.get_single_mut() {
         let mut direction = Vec3::ZERO;
+        let mut has_changed = false;
 
         if keyboard_input.pressed(KeyCode::Left) || keyboard_input.pressed(KeyCode::A) {
             direction += Vec3::new(-1.0, 0.0, 0.0);
+            has_changed = true;
         }
         if keyboard_input.pressed(KeyCode::Right) || keyboard_input.pressed(KeyCode::D) {
             direction += Vec3::new(1.0, 0.0, 0.0);
+            has_changed = true;
         }
         if keyboard_input.pressed(KeyCode::Up) || keyboard_input.pressed(KeyCode::W) {
             direction += Vec3::new(0.0, 1.0, 0.0);
+            has_changed = true;
         }
         if keyboard_input.pressed(KeyCode::Down) || keyboard_input.pressed(KeyCode::S) {
             direction += Vec3::new(0.0, -1.0, 0.0);
+            has_changed = true;
         }
 
         if direction.length() > 0.0 {
             direction = direction.normalize();
         }
-        transform.look_to(
-            Vec3 {
-                x: 0.0,
-                y: 0.0,
-                z: 0.0,
-            },
-            direction * time.delta_seconds(),
-        );
+        if has_changed {
+            transform.look_to(
+                Vec3 {
+                    x: 0.0,
+                    y: 0.0,
+                    z: 1.0,
+                },
+                direction * time.delta_seconds(),
+            );
+        }
         transform.translation += direction * PLAYERSPEED * time.delta_seconds();
     }
 }
