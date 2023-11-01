@@ -1,13 +1,19 @@
 mod camera;
 mod components;
+mod ingameui;
 mod mapsetup;
 mod player;
+mod ressources;
+mod structures;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
 use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
 use mapsetup::MapAsPng;
 use player::PlayerSpawnInfo;
+use ressources::MudRessource;
+use ressources::StoneRessource;
 use std::collections::HashSet;
+use structures::StructuresAsPng;
 use umath::FF32;
 
 fn main() {
@@ -17,7 +23,10 @@ fn main() {
         .init_resource::<CameraView>()
         .init_resource::<CameraScale>()
         .init_resource::<MapAsPng>()
+        .init_resource::<StructuresAsPng>()
         .init_resource::<PlayerSpawnInfo>()
+        .init_resource::<StoneRessource>()
+        .init_resource::<MudRessource>()
         .add_systems(
             Startup,
             (
@@ -25,6 +34,8 @@ fn main() {
                 camera::spawn_camera,
                 get_neighbours,
                 player::spawn_player,
+                ingameui::spawn_ingaem_ui,
+                structures::spawn_structures_from_map,
             ),
         )
         .add_systems(
@@ -33,6 +44,8 @@ fn main() {
                 get_neighbours,
                 player::player_movement,
                 player::camera_follow_player.after(player::player_movement),
+                ingameui::update_stone_ui,
+                ingameui::update_mud_ui,
                 // player::player_sprite_rotate,
             ),
         )
@@ -43,6 +56,7 @@ fn main() {
 pub struct GetNeighbours(u32);
 
 // ! How to send Information
+// ! There might be entity id's, this will have to be investigated
 pub fn get_neighbours(
     // value_query: Query<&mut TestValue,With<EnviromentBlock>>,
     block_query: Query<&EnviromentBlock>,

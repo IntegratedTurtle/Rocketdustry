@@ -53,7 +53,7 @@ impl Block {
 #[derive(Resource, Clone)]
 pub struct MapAsPng {
     image: DynamicImage,
-    dimension: (u32, u32),
+    pub dimension: (u32, u32),
 }
 
 impl Default for MapAsPng {
@@ -64,7 +64,8 @@ impl Default for MapAsPng {
         let dimension = image.dimensions();
         MapAsPng {
             dimension,
-            image: image.clone(),
+            // Since image 0/0 starts left top and bevies bottom left we have to flip
+            image: image.clone().flipv(),
         }
     }
 }
