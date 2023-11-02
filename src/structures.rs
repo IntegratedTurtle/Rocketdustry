@@ -99,7 +99,7 @@ impl StructuresAsPng {
 fn reallocation_with_size(location: &HashSetFloat, size: u8) -> (f32, f32) {
     (
         (*location.x + (0.5 * (size - 1) as f32)) * TEXTURESIZE, // - (0.5 * (size - 1) as f32)
-        (*location.y - (0.5 * (size - 1) as f32)) * TEXTURESIZE, // + (0.5 * (size - 1) as f32)
+        (*location.y + (0.5 * (size - 1) as f32)) * TEXTURESIZE, // + (0.5 * (size - 1) as f32)
     )
 }
 
