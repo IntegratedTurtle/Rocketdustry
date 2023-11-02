@@ -4,7 +4,7 @@ use bevy::prelude::*;
 use std::collections::HashSet;
 use umath::FF32;
 
-#[derive(PartialEq, Eq, Hash, Debug, Clone)]
+#[derive(PartialEq, Eq, Hash, Debug, Clone, Copy)]
 pub struct HashSetFloat {
     pub x: FF32,
     pub y: FF32,
