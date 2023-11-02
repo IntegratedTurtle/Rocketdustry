@@ -1,6 +1,7 @@
 use crate::components::HashSetFloat;
 use crate::components::Structure;
 use crate::mapsetup::TEXTURESIZE;
+use crate::ressources::EnviromentEntities;
 
 use crate::mapsetup::Block;
 use crate::MapAsPng;
@@ -135,12 +136,47 @@ pub fn spawn_structure(
     ));
 }
 
+///# Get Enviroment block from xy
+/// Creates a map of all coordinates that are underneath the block
+/// Then with the coordinates it gets the Block types from the EnviromentEntities
+/// If the Block is just 1x1, we don't need to create such maps and can just take the value
+pub fn get_enviroment_block_from_xy(
+    x: usize,
+    y: usize,
+    size: u8,
+    enviromentblock_entities: &Res<EnviromentEntities>,
+) -> Vec<Block> {
+    return if size > 1 {
+        (x..=x + size as usize - 1)
+            .flat_map(|x_val| (y..=y + size as usize - 1).map(move |y_val| (x_val, y_val)))
+            .map(|(x_i, y_i)| {
+                match enviromentblock_entities.map.get(&HashSetFloat {
+                    x: unsafe { FF32::new(x_i as f32) },
+                    y: unsafe { FF32::new(y_i as f32) },
+                }) {
+                    Some(block) => block.block,
+                    None => Block::Nothing,
+                }
+            })
+            .collect()
+    } else {
+        vec![match enviromentblock_entities.map.get(&HashSetFloat {
+            x: unsafe { FF32::new(x as f32) },
+            y: unsafe { FF32::new(y as f32) },
+        }) {
+            Some(block) => block.block,
+            None => Block::Nothing,
+        }]
+    };
+}
+
 ///# Spawn Structures from Map
 /// If there is a structures.png given, it is possible to spawn structures at the beginning of the game, of the game
 pub fn spawn_structures_from_map(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     map_as_png: Res<StructuresAsPng>,
+    enviromentblock_entities: Res<EnviromentEntities>,
 ) {
     let x_max: usize = map_as_png.dimension.0 as usize;
     let y_max: usize = map_as_png.dimension.1 as usize;
@@ -157,7 +193,12 @@ pub fn spawn_structures_from_map(
                         x: unsafe { FF32::new(x as f32) },
                         y: unsafe { FF32::new(y as f32) },
                     },
-                    vec![Block::Nothing],
+                    get_enviroment_block_from_xy(
+                        x,
+                        y,
+                        structure_type.size(),
+                        &enviromentblock_entities,
+                    ),
                     structure_type,
                     map_as_png.dimension,
                 )

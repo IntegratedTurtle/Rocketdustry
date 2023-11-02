@@ -10,6 +10,7 @@ use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
 use mapsetup::MapAsPng;
 use player::PlayerSpawnInfo;
+use ressources::EnviromentEntities;
 use ressources::MudRessource;
 use ressources::StoneRessource;
 use std::collections::HashSet;
@@ -27,6 +28,7 @@ fn main() {
         .init_resource::<PlayerSpawnInfo>()
         .init_resource::<StoneRessource>()
         .init_resource::<MudRessource>()
+        .init_resource::<EnviromentEntities>()
         .add_systems(
             Startup,
             (
@@ -35,7 +37,7 @@ fn main() {
                 get_neighbours,
                 player::spawn_player,
                 ingameui::spawn_ingaem_ui,
-                structures::spawn_structures_from_map,
+                structures::spawn_structures_from_map.after(mapsetup::spawn_blocks),
             ),
         )
         .add_systems(
