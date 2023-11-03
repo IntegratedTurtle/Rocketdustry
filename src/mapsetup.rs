@@ -102,7 +102,7 @@ pub fn spawn_blocks(
             let block_type = Block::pixel_to_block(
                 map_as_png.coordinates_to_pixel_without_alpha(x as u32, y as u32),
             );
-            let environment_block_goingto_create = EnvironmentBlock {
+            let environment_block_going_to_create = EnvironmentBlock {
                 location: HashSetFloat {
                     x: unsafe { FF32::new(x as f32) },
                     y: unsafe { FF32::new(y as f32) },
@@ -127,7 +127,7 @@ pub fn spawn_blocks(
                     texture: asset_server.load(&block_type.texture_string()),
                     ..default()
                 },
-                environment_block_goingto_create,
+                environment_block_going_to_create,
             ));
 
             fill_environment_entity_resource(

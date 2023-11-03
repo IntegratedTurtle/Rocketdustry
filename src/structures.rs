@@ -32,8 +32,8 @@ impl StructureType {
         };
     }
     /// Definer here which colors in the map the blocks should have
-    fn pixel_to_block(pixle: [u8; 3]) -> Self {
-        return match pixle {
+    fn pixel_to_block(pixel: [u8; 3]) -> Self {
+        return match pixel {
             [0, 0, 0] => Self::Nothing,
             [255, 200, 0] => Self::Core,
             [56, 56, 56] => Self::Drill,
