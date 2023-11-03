@@ -7,7 +7,7 @@ For a guide on installing Rocketdustry see our [[https://github.com/IntegratedTu
 
 ** Roadmap
 + creating a mindustry clone
-+ implement rockets
-+ implement anti-missile systems
++ implementing rockets
++ implementing anti-missile systems
 
 
