@@ -1,5 +1,5 @@
 use crate::components::{EnviromentBlock, HashSetFloat};
-use crate::ressources::EnviromentEntities;
+use crate::resources::EnviromentEntities;
 use bevy::prelude::*;
 use image::{DynamicImage, GenericImageView};
 use std::collections::HashSet;

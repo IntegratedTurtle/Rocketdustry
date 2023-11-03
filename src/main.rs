@@ -3,16 +3,16 @@ mod components;
 mod ingameui;
 mod mapsetup;
 mod player;
-mod ressources;
+mod resources;
 mod structures;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
 use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
 use mapsetup::MapAsPng;
 use player::PlayerSpawnInfo;
-use ressources::EnviromentEntities;
-use ressources::MudRessource;
-use ressources::StoneRessource;
+use resources::EnviromentEntities;
+use resources::MudResource;
+use resources::StoneResource;
 use std::collections::HashSet;
 use structures::StructuresAsPng;
 use umath::FF32;
@@ -26,8 +26,8 @@ fn main() {
         .init_resource::<MapAsPng>()
         .init_resource::<StructuresAsPng>()
         .init_resource::<PlayerSpawnInfo>()
-        .init_resource::<StoneRessource>()
-        .init_resource::<MudRessource>()
+        .init_resource::<StoneResource>()
+        .init_resource::<MudResource>()
         .init_resource::<EnviromentEntities>()
         .add_systems(
             Startup,

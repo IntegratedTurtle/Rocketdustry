@@ -1,7 +1,7 @@
-use crate::ressources;
+use crate::resources;
 use bevy::prelude::*;
-use ressources::MudRessource;
-use ressources::StoneRessource;
+use resources::MudResource;
+use resources::StoneResource;
 
 #[derive(Component)]
 pub struct StoneCountUi {}
@@ -57,13 +57,13 @@ pub fn spawn_ingaem_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
 
 pub fn update_stone_ui(
     mut texts: Query<&mut Text, With<StoneCountUi>>,
-    stone: Res<StoneRessource>,
+    stone: Res<StoneResource>,
 ) {
     for mut text in &mut texts {
         text.sections[0].value = format!("Stone: {}", stone.value);
     }
 }
-pub fn update_mud_ui(mut texts: Query<&mut Text, With<MudCountUi>>, mud: Res<MudRessource>) {
+pub fn update_mud_ui(mut texts: Query<&mut Text, With<MudCountUi>>, mud: Res<MudResource>) {
     for mut text in &mut texts {
         text.sections[0].value = format!("Mud: {}", mud.value);
     }

@@ -1,7 +1,7 @@
 use crate::components::HashSetFloat;
 use crate::components::Structure;
 use crate::mapsetup::TEXTURESIZE;
-use crate::ressources::EnviromentEntities;
+use crate::resources::EnviromentEntities;
 
 use crate::mapsetup::Block;
 use crate::MapAsPng;
