@@ -1,7 +1,7 @@
 use crate::components::HashSetFloat;
 use crate::components::Structure;
 use crate::mapsetup::TEXTURESIZE;
-use crate::resources::EnviromentEntities;
+use crate::resources::EnvironmentEntities;
 
 use crate::mapsetup::Block;
 use crate::MapAsPng;
@@ -73,21 +73,21 @@ pub struct StructuresAsPng {
 impl Default for StructuresAsPng {
     fn default() -> Self {
         // While there is no loading screen that determents the structures on which on will play on
-        // the game will chouse structures.png in the root
+        // the game will choose structures.png in the root
         let image = match image::open("./structures.png") {
             Ok(file) => file,
             Err(_) => create_empty_image(image::open("./map.png").unwrap().dimensions()),
         };
         let dimension = image.dimensions();
         StructuresAsPng {
-            // Since image crates and bevys cooridante systems have mirrored x x acis, we have to mirror this again
+            // Since image crates and bevys coordinate systems have mirrored x x acis, we have to mirror this again
             image: image.clone().flipv(),
             dimension: dimension,
         }
     }
 }
 
-/// This funktion uses the DynamicImage saved in image, and gets the r,g,b values from its positions
+/// This function uses the DynamicImage saved in image, and gets the r,g,b values from its positions
 impl StructuresAsPng {
     fn coordinates_to_pixel_without_alpha(&self, x: u32, y: u32) -> [u8; 3] {
         let pixels = self.image.get_pixel(x, y);
@@ -95,8 +95,8 @@ impl StructuresAsPng {
     }
 }
 
-/// For ease of use, the program does allways counts the top left part of the Structure as its base
-/// Since the origins are in the middle this funktion has to callculate the real position, from the theoretical one
+/// For ease of use, the program does always counts the top left part of the Structure as its base
+/// Since the origins are in the middle this function has to calculate the real position, from the theoretical one
 fn reallocation_with_size(location: &HashSetFloat, size: u8) -> (f32, f32) {
     (
         (*location.x + (0.5 * (size - 1) as f32)) * TEXTURESIZE, // - (0.5 * (size - 1) as f32)
@@ -110,7 +110,7 @@ pub fn spawn_structure(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
     location: HashSetFloat,
-    enviromentblock: Vec<Block>,
+    environmentblock: Vec<Block>,
     structure_type: StructureType,
     map_size: (u32, u32),
 ) {
@@ -131,7 +131,7 @@ pub fn spawn_structure(
                 unsafe { FF32::new(map_size.1 as f32) },
                 structure_type.size(),
             ),
-            enviroment_block_under: enviromentblock,
+            environment_block_under: environmentblock,
         },
     ));
 }
@@ -140,17 +140,17 @@ pub fn spawn_structure(
 /// Creates a map of all coordinates that are underneath the block
 /// Then with the coordinates it gets the Block types from the EnviromentEntities
 /// If the Block is just 1x1, we don't need to create such maps and can just take the value
-pub fn get_enviroment_block_from_xy(
+pub fn get_environment_block_from_xy(
     x: usize,
     y: usize,
     size: u8,
-    enviromentblock_entities: &Res<EnviromentEntities>,
+    environmentblock_entities: &Res<EnvironmentEntities>,
 ) -> Vec<Block> {
     return if size > 1 {
         (x..=x + size as usize - 1)
             .flat_map(|x_val| (y..=y + size as usize - 1).map(move |y_val| (x_val, y_val)))
             .map(|(x_i, y_i)| {
-                match enviromentblock_entities.map.get(&HashSetFloat {
+                match environmentblock_entities.map.get(&HashSetFloat {
                     x: unsafe { FF32::new(x_i as f32) },
                     y: unsafe { FF32::new(y_i as f32) },
                 }) {
@@ -160,7 +160,7 @@ pub fn get_enviroment_block_from_xy(
             })
             .collect()
     } else {
-        vec![match enviromentblock_entities.map.get(&HashSetFloat {
+        vec![match environmentblock_entities.map.get(&HashSetFloat {
             x: unsafe { FF32::new(x as f32) },
             y: unsafe { FF32::new(y as f32) },
         }) {
@@ -176,7 +176,7 @@ pub fn spawn_structures_from_map(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     map_as_png: Res<StructuresAsPng>,
-    enviromentblock_entities: Res<EnviromentEntities>,
+    environmentblock_entities: Res<EnvironmentEntities>,
 ) {
     let x_max: usize = map_as_png.dimension.0 as usize;
     let y_max: usize = map_as_png.dimension.1 as usize;
@@ -193,11 +193,11 @@ pub fn spawn_structures_from_map(
                         x: unsafe { FF32::new(x as f32) },
                         y: unsafe { FF32::new(y as f32) },
                     },
-                    get_enviroment_block_from_xy(
+                    get_environment_block_from_xy(
                         x,
                         y,
                         structure_type.size(),
-                        &enviromentblock_entities,
+                        &environmentblock_entities,
                     ),
                     structure_type,
                     map_as_png.dimension,

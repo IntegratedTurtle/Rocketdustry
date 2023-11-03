@@ -1,5 +1,5 @@
-use crate::components::{EnviromentBlock, HashSetFloat};
-use crate::resources::EnviromentEntities;
+use crate::components::{EnvironmentBlock, HashSetFloat};
+use crate::resources::EnvironmentEntities;
 use bevy::prelude::*;
 use image::{DynamicImage, GenericImageView};
 use std::collections::HashSet;
@@ -15,8 +15,8 @@ pub const TEXTURESIZE: f32 = 64.0;
 /// Ground Interactiv Blocks will use these to determen what to do
 /// ## Creating new Blocks
 /// 1. Add the new Block to this Enum
-/// 2. Define a pixle for it and add it to the pixle_to_block funktion
-/// 3. Define a texture and add it to the texture_string funktion
+/// 2. Define a pixle for it and add it to the pixle_to_block function
+/// 3. Define a texture and add it to the texture_string function
 #[derive(PartialEq, Debug, Clone, Copy)]
 pub enum Block {
     Gras,
@@ -59,7 +59,7 @@ pub struct MapAsPng {
 
 impl Default for MapAsPng {
     // While there is no loading screen that determents the map on which on will play on
-    // the game will chouse map.png in the root
+    // the game will choose map.png in the root
     fn default() -> Self {
         let image = image::open("./map.png").expect("Could not find map.png in root");
         let dimension = image.dimensions();
@@ -70,7 +70,7 @@ impl Default for MapAsPng {
         }
     }
 }
-/// This funktion uses the DynamicImage saved in image, and gets the r,g,b values from its positions
+/// This function uses the DynamicImage saved in image, and gets the r,g,b values from its positions
 impl MapAsPng {
     fn coordinates_to_pixel_without_alpha(&self, x: u32, y: u32) -> [u8; 3] {
         let pixels = self.image.get_pixel(x, y);
@@ -85,7 +85,7 @@ impl MapAsPng {
 
 /// ## block_type
 /// is the block the currently created block is type of
-/// 1. gets the r,g,b values with coordingates from the picture
+/// 1. gets the r,g,b values with coordinates from the picture
 /// 2. maps these r,g,b values to an Block
 /// 3. loads the texture of an Block into the texture of the SpriteBundle
 
@@ -93,7 +93,7 @@ pub fn spawn_blocks(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     map_as_png: Res<MapAsPng>,
-    mut enviroment_resource: ResMut<EnviromentEntities>,
+    mut environment_resource: ResMut<EnvironmentEntities>,
 ) {
     let x_max: usize = map_as_png.dimension.0 as usize;
     let y_max: usize = map_as_png.dimension.1 as usize;
@@ -102,13 +102,13 @@ pub fn spawn_blocks(
             let block_type = Block::pixel_to_block(
                 map_as_png.coordinates_to_pixel_without_alpha(x as u32, y as u32),
             );
-            let enviroment_block_goingto_create = EnviromentBlock {
+            let environment_block_goingto_create = EnvironmentBlock {
                 location: HashSetFloat {
                     x: unsafe { FF32::new(x as f32) },
                     y: unsafe { FF32::new(y as f32) },
                 },
                 block: block_type,
-                neighbour: EnviromentBlock::get_neighbours(
+                neighbour: EnvironmentBlock::get_neighbours(
                     unsafe { FF32::new(x as f32) },
                     unsafe { FF32::new(y as f32) },
                     unsafe { FF32::new(x_max as f32) },
@@ -127,18 +127,18 @@ pub fn spawn_blocks(
                     texture: asset_server.load(&block_type.texture_string()),
                     ..default()
                 },
-                enviroment_block_goingto_create,
+                environment_block_goingto_create,
             ));
 
-            fill_envirmoment_entity_ressource(
-                &mut enviroment_resource,
-                EnviromentBlock {
+            fill_environment_entity_resource(
+                &mut environment_resource,
+                EnvironmentBlock {
                     location: HashSetFloat {
                         x: unsafe { FF32::new(x as f32) },
                         y: unsafe { FF32::new(y as f32) },
                     },
                     block: block_type,
-                    neighbour: EnviromentBlock::get_neighbours(
+                    neighbour: EnvironmentBlock::get_neighbours(
                         unsafe { FF32::new(x as f32) },
                         unsafe { FF32::new(y as f32) },
                         unsafe { FF32::new(x_max as f32) },
@@ -149,13 +149,13 @@ pub fn spawn_blocks(
         }
     }
 }
-///# Fill Enviromententity Ressource
-/// This funktion, takes the EnviromentEntities and adds the current block to it
+///# Fill Environmententity Resource
+/// This function, takes the EnvironmentEntities and adds the current block to it
 /// This block can then be queried with its location
 /// This is important for structures, so they know which blocks are under them
-pub fn fill_envirmoment_entity_ressource(
-    enviroment_resource: &mut ResMut<EnviromentEntities>,
-    block: EnviromentBlock,
+pub fn fill_environment_entity_resource(
+    environment_resource: &mut ResMut<EnvironmentEntities>,
+    block: EnvironmentBlock,
 ) {
-    enviroment_resource.map.insert(block.location, block);
+    environment_resource.map.insert(block.location, block);
 }

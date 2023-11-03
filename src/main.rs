@@ -7,10 +7,10 @@ mod resources;
 mod structures;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
 use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
-use components::{EnviromentBlock, HashSetFloat, TestValue};
+use components::{EnvironmentBlock, HashSetFloat, TestValue};
 use mapsetup::MapAsPng;
 use player::PlayerSpawnInfo;
-use resources::EnviromentEntities;
+use resources::EnvironmentEntities;
 use resources::MudResource;
 use resources::StoneResource;
 use std::collections::HashSet;
@@ -28,7 +28,7 @@ fn main() {
         .init_resource::<PlayerSpawnInfo>()
         .init_resource::<StoneResource>()
         .init_resource::<MudResource>()
-        .init_resource::<EnviromentEntities>()
+        .init_resource::<EnvironmentEntities>()
         .add_systems(
             Startup,
             (
@@ -36,7 +36,7 @@ fn main() {
                 camera::spawn_camera,
                 get_neighbours,
                 player::spawn_player,
-                ingameui::spawn_ingaem_ui,
+                ingameui::spawn_ingame_ui,
                 structures::spawn_structures_from_map.after(mapsetup::spawn_blocks),
             ),
         )
@@ -60,9 +60,9 @@ pub struct GetNeighbours(u32);
 // ! How to send Information
 // ! There might be entity id's, this will have to be investigated
 pub fn get_neighbours(
-    // value_query: Query<&mut TestValue,With<EnviromentBlock>>,
-    block_query: Query<&EnviromentBlock>,
-    mut neighbour_query: Query<(&EnviromentBlock, &mut TestValue)>,
+    // value_query: Query<&mut TestValue,With<EnvironmentBlock>>,
+    block_query: Query<&EnvironmentBlock>,
+    mut neighbour_query: Query<(&EnvironmentBlock, &mut TestValue)>,
     mut event_reader: EventReader<GetNeighbours>,
 ) {
     for ev in event_reader.iter() {

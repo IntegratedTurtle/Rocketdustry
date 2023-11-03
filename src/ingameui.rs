@@ -8,7 +8,7 @@ pub struct StoneCountUi {}
 #[derive(Component)]
 pub struct MudCountUi {}
 
-pub fn spawn_ingaem_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn spawn_ingame_ui(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands
         .spawn((
             NodeBundle {
