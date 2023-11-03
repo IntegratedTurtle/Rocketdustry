@@ -11,13 +11,13 @@ pub struct HashSetFloat {
 }
 
 #[derive(Component, Debug, PartialEq)]
-pub struct EnvironmentBlock {
+pub struct EnviromentBlock {
     pub location: HashSetFloat,
     pub block: Block,
     pub neighbour: HashSet<HashSetFloat>,
 }
 
-impl EnvironmentBlock {
+impl EnviromentBlock {
     pub fn get_neighbours(x: FF32, y: FF32, x_max: FF32, y_max: FF32) -> HashSet<HashSetFloat> {
         let mut outputvec = HashSet::with_capacity(4);
 
@@ -42,7 +42,7 @@ pub struct Structure {
     pub location: HashSetFloat,
     pub structure: StructureType,
     pub neighbour: HashSet<HashSetFloat>,
-    pub environment_block_under: Vec<Block>,
+    pub enviroment_block_under: Vec<Block>,
 }
 
 impl Structure {

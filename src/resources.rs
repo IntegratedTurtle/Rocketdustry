@@ -1,14 +1,26 @@
-use crate::components::{EnvironmentBlock, HashSetFloat};
+use crate::components::{EnviromentBlock, HashSetFloat};
 use bevy::prelude::*;
-use std::collections::HashMap;
+use std::{collections::HashMap, default};
 
 #[derive(Resource, Debug)]
-pub struct EnvironmentEntities {
-    pub map: HashMap<HashSetFloat, EnvironmentBlock>,
+pub struct EnviromentEntities {
+    pub map: HashMap<HashSetFloat, EnviromentBlock>,
 }
-impl Default for EnvironmentEntities {
+impl Default for EnviromentEntities {
     fn default() -> Self {
-        EnvironmentEntities {
+        EnviromentEntities {
+            map: HashMap::new(),
+        }
+    }
+}
+#[derive(Resource, Debug)]
+pub struct StructureEntities {
+    pub map: HashMap<HashSetFloat, Entity>,
+}
+
+impl Default for StructureEntities {
+    fn default() -> Self {
+        StructureEntities {
             map: HashMap::new(),
         }
     }

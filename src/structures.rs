@@ -1,13 +1,26 @@
 use crate::components::HashSetFloat;
 use crate::components::Structure;
 use crate::mapsetup::TEXTURESIZE;
-use crate::resources::EnvironmentEntities;
+use crate::resources::EnviromentEntities;
+use crate::resources::StructureEntities;
+use rand::Rng;
+
+use crate::drill;
 
 use crate::mapsetup::Block;
 use crate::MapAsPng;
 use bevy::prelude::*;
 use image::{DynamicImage, GenericImageView, ImageBuffer, Rgba};
 use umath::FF32;
+
+///# Structure create event
+/// When ever a structure gets created this event is send
+/// it is used to
+/// 1. Add the Component in its file
+#[derive(Event)]
+pub struct StructureCreateEvent {
+    structure_type: StructureType,
+}
 
 ///# Structure
 /// Here is the first place if you want to define a structure
@@ -26,7 +39,7 @@ impl StructureType {
         return match self {
             Self::Core => 2,
             Self::Conveyor => 1,
-            Self::Drill => 2,
+            Self::Drill => drill::SIZE,
             Self::Nothing => 1,
             Self::Checker => 1,
         };
@@ -36,7 +49,7 @@ impl StructureType {
         return match pixel {
             [0, 0, 0] => Self::Nothing,
             [255, 200, 0] => Self::Core,
-            [56, 56, 56] => Self::Drill,
+            drill::PIXLEVALUE => Self::Drill,
             [100, 100, 100] => Self::Conveyor,
             _ => Self::Checker,
         };
@@ -47,7 +60,7 @@ impl StructureType {
             Self::Checker => "sprites/Checker.png".to_string(),
             Self::Core => "sprites/Core.png".to_string(),
             Self::Conveyor => "sprites/Conveyer.png".to_string(),
-            Self::Drill => "sprites/Drill.png".to_string(),
+            Self::Drill => drill::SPRITENAME.to_string(),
         };
     }
 }
@@ -109,31 +122,37 @@ fn reallocation_with_size(location: &HashSetFloat, size: u8) -> (f32, f32) {
 pub fn spawn_structure(
     commands: &mut Commands,
     asset_server: &Res<AssetServer>,
+    strucute_entities: &mut ResMut<StructureEntities>,
     location: HashSetFloat,
-    environmentblock: Vec<Block>,
+    enviromentblock: Vec<Block>,
     structure_type: StructureType,
     map_size: (u32, u32),
+    structure_create_event: &mut EventWriter<StructureCreateEvent>,
 ) {
     let reallocation = reallocation_with_size(&location, structure_type.size());
-    commands.spawn((
-        SpriteBundle {
-            transform: Transform::from_xyz(reallocation.0, reallocation.1, 0.5),
-            texture: asset_server.load(structure_type.texture_string()),
-            ..default()
-        },
-        Structure {
-            location: location.clone(),
-            structure: structure_type.clone(),
-            neighbour: Structure::get_neighbours(
-                location.x,
-                location.y,
-                unsafe { FF32::new(map_size.0 as f32) },
-                unsafe { FF32::new(map_size.1 as f32) },
-                structure_type.size(),
-            ),
-            environment_block_under: environmentblock,
-        },
-    ));
+    let structure_id = commands
+        .spawn((
+            SpriteBundle {
+                transform: Transform::from_xyz(reallocation.0, reallocation.1, 0.5),
+                texture: asset_server.load(structure_type.texture_string()),
+                ..default()
+            },
+            Structure {
+                location: location,
+                structure: structure_type.clone(),
+                neighbour: Structure::get_neighbours(
+                    location.x,
+                    location.y,
+                    unsafe { FF32::new(map_size.0 as f32) },
+                    unsafe { FF32::new(map_size.1 as f32) },
+                    structure_type.size(),
+                ),
+                enviroment_block_under: enviromentblock,
+            },
+        ))
+        .id();
+    strucute_entities.map.insert(location, structure_id);
+    structure_create_event.send(StructureCreateEvent { structure_type });
 }
 
 ///# Get Enviroment block from xy
@@ -144,7 +163,7 @@ pub fn get_environment_block_from_xy(
     x: usize,
     y: usize,
     size: u8,
-    environmentblock_entities: &Res<EnvironmentEntities>,
+    environmentblock_entities: &Res<EnviromentEntities>,
 ) -> Vec<Block> {
     return if size > 1 {
         (x..=x + size as usize - 1)
@@ -169,6 +188,28 @@ pub fn get_environment_block_from_xy(
         }]
     };
 }
+///# Get most Block
+/// Gets the Vec and removes all non prominent Blocks, so the drill does only know which Blocks are under it
+pub fn get_most_block(mut blocks: Vec<Block>) -> Vec<Block> {
+    if blocks.is_empty() {
+        return Vec::new(); // Handle the case of an empty vector.
+    }
+
+    let mut counts = std::collections::HashMap::new();
+
+    // Count the occurrences of each Block in the vector.
+    for &block in &blocks {
+        *counts.entry(block).or_insert(0) += 1;
+    }
+
+    // Find the most prominent Block and its count.
+    let (most_prominent, _) = counts.iter().max_by_key(|&(_, count)| count).unwrap();
+
+    // Use iterator filter to keep only the most prominent Block.
+    blocks.retain(|&block| block == *most_prominent);
+
+    blocks
+}
 
 ///# Spawn Structures from Map
 /// If there is a structures.png given, it is possible to spawn structures at the beginning of the game, of the game
@@ -176,7 +217,9 @@ pub fn spawn_structures_from_map(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     map_as_png: Res<StructuresAsPng>,
-    environmentblock_entities: Res<EnvironmentEntities>,
+    enviromentblock_entities: Res<EnviromentEntities>,
+    mut strucute_entities: ResMut<StructureEntities>,
+    mut structure_create_event: EventWriter<StructureCreateEvent>,
 ) {
     let x_max: usize = map_as_png.dimension.0 as usize;
     let y_max: usize = map_as_png.dimension.1 as usize;
@@ -189,6 +232,7 @@ pub fn spawn_structures_from_map(
                 spawn_structure(
                     &mut commands,
                     &asset_server,
+                    &mut strucute_entities,
                     HashSetFloat {
                         x: unsafe { FF32::new(x as f32) },
                         y: unsafe { FF32::new(y as f32) },
@@ -197,12 +241,23 @@ pub fn spawn_structures_from_map(
                         x,
                         y,
                         structure_type.size(),
-                        &environmentblock_entities,
+                        &enviromentblock_entities,
                     ),
                     structure_type,
                     map_as_png.dimension,
+                    &mut structure_create_event,
                 )
             }
         }
     }
+}
+
+///# Random item
+/// Takes in a properbility value and returns a bool
+/// Gets used for determening if ressource gets spawned
+pub fn random_item(probability: f32) -> bool {
+    let mut rng = rand::thread_rng();
+    let random_value: f32 = rng.gen();
+
+    random_value < probability
 }
