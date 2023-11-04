@@ -1,13 +1,18 @@
-use bevy::core_pipeline::bloom;
 use bevy::prelude::*;
-use rand::Rng;
+use umath::FF32;
 
+use crate::components::HashSetFloat;
 use crate::components::Structure;
+use crate::items::get_item_direction;
 use crate::mapsetup::Block;
+use crate::ressources::StructureEntities;
 use crate::structures::random_item;
+use crate::structures::spawn_structure;
+use crate::structures::Facing;
+use crate::structures::InputAble;
 use crate::structures::StructureCreateEvent;
 use crate::structures::StructureType;
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 pub const SIZE: u8 = 2;
 pub const SPRITENAME: &str = "sprites/Drill.png";
@@ -16,6 +21,8 @@ const STRUCTURETYPE: StructureType = StructureType::Drill;
 
 const DRILLSPEED_STONE: f32 = 0.3;
 const DRILLSPEED_MUD: f32 = 0.5;
+
+use crate::items::ItemType;
 
 pub struct DrillPlugin;
 
@@ -43,7 +50,11 @@ fn make_drill(
 }
 
 #[rustfmt::skip]
-fn drill(drills_query: Query<&Structure, With<Drill>>, time: Res<Time>) {
+fn drill(drills_query: Query<&Structure, With<Drill>>,
+         time: Res<Time>,
+         mut input_device_query: Query<&mut InputAble>,
+         structure_entities: Res<StructureEntities>,
+) {
     for drill in drills_query.iter() {
         // Get the most used Block
         let mut enviroment_blocks = HashMap::new();
@@ -65,11 +76,42 @@ fn drill(drills_query: Query<&Structure, With<Drill>>, time: Res<Time>) {
         // If the block is not mineable, by the drill, it should break out of the loop
         for _ in 0..max_value {
             match max_key {
-                Block::Stone => if random_item(DRILLSPEED_STONE * time.delta_seconds()) {println!("STONE")},
-                Block::Mud => if random_item(DRILLSPEED_MUD * time.delta_seconds()) {println!("MUD")},
+                Block::Stone => if random_item(DRILLSPEED_STONE * time.delta_seconds()) {add_item_to_inputable(drill, &structure_entities, &mut input_device_query, ItemType::Stone)},
+                Block::Mud => if random_item(DRILLSPEED_MUD * time.delta_seconds()) {add_item_to_inputable(drill, &structure_entities, &mut input_device_query, ItemType::Mud)},
                 _ => break,
             }
-            
         }
     }
+}
+
+fn add_item_to_inputable(
+    output: &Structure,
+    structure_entities: &Res<StructureEntities>,
+    input_device_query: &mut Query<&mut InputAble>,
+    to_input_item: ItemType, // item
+) {
+    let mut neigbours: Vec<(HashSetFloat, Option<&Entity>)> = output
+        .neighbour
+        .iter()
+        .map(|location| (*location, structure_entities.map.get(location)))
+        .filter(|&(_, some_id)| some_id.is_some())
+        .collect();
+
+    // get the blocks from the ids and check if they are inputable and emty, if so An item gets added
+    neigbours
+        .iter_mut()
+        .for_each(|(location_i, option_entity)| {
+            if let Ok(mut inputable) = input_device_query.get_mut(match *option_entity {
+                Some(entity) => *entity,
+                None => panic!("None was not successfully filtered"),
+            }) {
+                if inputable
+                    .inputable
+                    .contains(&get_item_direction(output.location, *location_i))
+                    && inputable.item == ItemType::Nothing
+                {
+                    inputable.item = to_input_item;
+                }
+            }
+        });
 }

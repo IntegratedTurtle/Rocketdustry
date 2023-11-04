@@ -1,7 +1,9 @@
 mod camera;
 mod components;
+pub mod conveyor;
 pub mod drill;
 mod ingameui;
+mod items;
 mod mapsetup;
 mod player;
 mod resources;
@@ -9,6 +11,7 @@ mod structures;
 use bevy::{prelude::*, utils::petgraph::csr::Neighbors, window::PrimaryWindow};
 use camera::{move_camera, zoom_out_camera, CameraScale, CameraView};
 use components::{EnviromentBlock, HashSetFloat, TestValue};
+use conveyor::ConveyorPlugin;
 use drill::DrillPlugin;
 use mapsetup::MapAsPng;
 use player::PlayerSpawnInfo;
@@ -23,7 +26,7 @@ use umath::FF32;
 
 fn main() {
     App::new()
-        .add_plugins((DefaultPlugins, DrillPlugin))
+        .add_plugins((DefaultPlugins, DrillPlugin, ConveyorPlugin))
         .add_event::<GetNeighbours>()
         .init_resource::<CameraView>()
         .init_resource::<CameraScale>()
@@ -54,8 +57,6 @@ fn main() {
                 player::camera_follow_player.after(player::player_movement),
                 ingameui::update_stone_ui,
                 ingameui::update_mud_ui,
-                // find_all_structures,
-                // player::player_sprite_rotate,
             ),
         )
         .run()
@@ -98,17 +99,6 @@ fn find_all_structures(
         }
     );
 }
-
-// pub fn add_values(
-//     // value_query: Query<&TestValue>,
-//     mut other_value_query: Query<&mut TestValue>,
-// ) {
-//     for value in other_value_query.iter_combinations_mut() {
-//         for mut other_value in other_value_query.iter_mut() {
-//             other_value.value += value.value;
-//         }
-//     }
-// }
 
 pub fn print_values(test_value: Query<&TestValue>) {
     for value in test_value.iter() {

@@ -1,10 +1,12 @@
 use crate::components::HashSetFloat;
 use crate::components::Structure;
+use crate::items::ItemType;
 use crate::mapsetup::TEXTURESIZE;
 use crate::resources::EnviromentEntities;
 use crate::resources::StructureEntities;
 use rand::Rng;
 
+use crate::conveyor;
 use crate::drill;
 
 use crate::mapsetup::Block;
@@ -20,6 +22,25 @@ use umath::FF32;
 #[derive(Event)]
 pub struct StructureCreateEvent {
     structure_type: StructureType,
+}
+
+///# Inputable
+/// Determens if it is possible to input an item into this block
+/// ## item
+/// Shows the currently holding item, it is only to input if the item is nothing
+/// ## inputabel
+/// Is a Vec of Facing, it only accepts items if the where inputet in a way that they where facing in a possible direction
+#[derive(Component)]
+pub struct InputAble {
+    pub item: ItemType,
+    pub inputable: Vec<Facing>,
+}
+
+/// Is get by the Alpha value of an pixel and is additional information the blocks can use
+/// Bsp. Conveyor use it to determen in which direction they are facing
+#[derive(Component)]
+pub struct AdditionalInformation {
+    pub value: u8,
 }
 
 ///# Structure
@@ -38,7 +59,7 @@ impl StructureType {
     fn size(&self) -> u8 {
         return match self {
             Self::Core => 2,
-            Self::Conveyor => 1,
+            Self::Conveyor => conveyor::SIZE,
             Self::Drill => drill::SIZE,
             Self::Nothing => 1,
             Self::Checker => 1,
@@ -50,7 +71,7 @@ impl StructureType {
             [0, 0, 0] => Self::Nothing,
             [255, 200, 0] => Self::Core,
             drill::PIXLEVALUE => Self::Drill,
-            [100, 100, 100] => Self::Conveyor,
+            conveyor::PIXLEVALUE => Self::Conveyor,
             _ => Self::Checker,
         };
     }
@@ -59,10 +80,25 @@ impl StructureType {
             Self::Nothing => "sprites/Nothing.png".to_string(),
             Self::Checker => "sprites/Checker.png".to_string(),
             Self::Core => "sprites/Core.png".to_string(),
-            Self::Conveyor => "sprites/Conveyer.png".to_string(),
+            Self::Conveyor => conveyor::SPRITENAME.to_string(),
             Self::Drill => drill::SPRITENAME.to_string(),
         };
     }
+}
+
+///# Facing
+/// Is used by blocks to know in which direction they are facing and how to act on that
+#[derive(Debug, Copy, Clone, PartialEq)]
+pub enum Facing {
+    Up,
+    Down,
+    Left,
+    Right,
+}
+
+#[derive(Component)]
+pub struct WhereFacing {
+    pub facing: Facing,
 }
 
 fn create_empty_image(dimension: (u32, u32)) -> DynamicImage {
@@ -106,6 +142,9 @@ impl StructuresAsPng {
         let pixels = self.image.get_pixel(x, y);
         [pixels[0], pixels[1], pixels[2]]
     }
+    fn get_alpha_from_xy(&self, x: u32, y: u32) -> u8 {
+        return self.image.get_pixel(x, y)[3];
+    }
 }
 
 /// For ease of use, the program does always counts the top left part of the Structure as its base
@@ -128,7 +167,9 @@ pub fn spawn_structure(
     structure_type: StructureType,
     map_size: (u32, u32),
     structure_create_event: &mut EventWriter<StructureCreateEvent>,
+    additional_information: u8,
 ) {
+    let f32_location: (f32, f32) = (*location.x, *location.y);
     let reallocation = reallocation_with_size(&location, structure_type.size());
     let structure_id = commands
         .spawn((
@@ -149,9 +190,21 @@ pub fn spawn_structure(
                 ),
                 enviroment_block_under: enviromentblock,
             },
+            AdditionalInformation {
+                value: additional_information,
+            },
         ))
         .id();
-    strucute_entities.map.insert(location, structure_id);
+    get_all_coordinates(
+        f32_location.0 as usize,
+        f32_location.1 as usize,
+        structure_type.size(),
+    )
+    .iter()
+    .for_each(|location_i| {
+        strucute_entities.map.insert(*location_i, structure_id);
+    });
+
     structure_create_event.send(StructureCreateEvent { structure_type });
 }
 
@@ -166,6 +219,7 @@ pub fn get_environment_block_from_xy(
     environmentblock_entities: &Res<EnviromentEntities>,
 ) -> Vec<Block> {
     return if size > 1 {
+<<<<<<< HEAD
         (x..=x + size as usize - 1)
             .flat_map(|x_val| (y..=y + size as usize - 1).map(move |y_val| (x_val, y_val)))
             .map(|(x_i, y_i)| {
@@ -173,10 +227,16 @@ pub fn get_environment_block_from_xy(
                     x: unsafe { FF32::new(x_i as f32) },
                     y: unsafe { FF32::new(y_i as f32) },
                 }) {
+=======
+        get_all_coordinates(x, y, size)
+            .iter()
+            .map(
+                |hashsetfloat| match enviromentblock_entities.map.get(hashsetfloat) {
+>>>>>>> 2237bdb (Added Output to input devices)
                     Some(block) => block.block,
                     None => Block::Nothing,
-                }
-            })
+                },
+            )
             .collect()
     } else {
         vec![match environmentblock_entities.map.get(&HashSetFloat {
@@ -188,27 +248,21 @@ pub fn get_environment_block_from_xy(
         }]
     };
 }
-///# Get most Block
-/// Gets the Vec and removes all non prominent Blocks, so the drill does only know which Blocks are under it
-pub fn get_most_block(mut blocks: Vec<Block>) -> Vec<Block> {
-    if blocks.is_empty() {
-        return Vec::new(); // Handle the case of an empty vector.
+fn get_all_coordinates(x: usize, y: usize, size: u8) -> Vec<HashSetFloat> {
+    if size > 1 {
+        (x..=x + size as usize - 1)
+            .flat_map(|x_val| (y..=y + size as usize - 1).map(move |y_val| (x_val, y_val)))
+            .map(|(x_i, y_i)| HashSetFloat {
+                x: unsafe { FF32::new(x_i as f32) },
+                y: unsafe { FF32::new(y_i as f32) },
+            })
+            .collect()
+    } else {
+        vec![HashSetFloat {
+            x: unsafe { FF32::new(x as f32) },
+            y: unsafe { FF32::new(y as f32) },
+        }]
     }
-
-    let mut counts = std::collections::HashMap::new();
-
-    // Count the occurrences of each Block in the vector.
-    for &block in &blocks {
-        *counts.entry(block).or_insert(0) += 1;
-    }
-
-    // Find the most prominent Block and its count.
-    let (most_prominent, _) = counts.iter().max_by_key(|&(_, count)| count).unwrap();
-
-    // Use iterator filter to keep only the most prominent Block.
-    blocks.retain(|&block| block == *most_prominent);
-
-    blocks
 }
 
 ///# Spawn Structures from Map
@@ -229,6 +283,7 @@ pub fn spawn_structures_from_map(
                 map_as_png.coordinates_to_pixel_without_alpha(x as u32, y as u32),
             );
             if structure_type != StructureType::Nothing {
+                println!("XY, = {:?}, type = {:?}", (x, y), structure_type);
                 spawn_structure(
                     &mut commands,
                     &asset_server,
@@ -246,6 +301,7 @@ pub fn spawn_structures_from_map(
                     structure_type,
                     map_as_png.dimension,
                     &mut structure_create_event,
+                    map_as_png.get_alpha_from_xy(x as u32, y as u32),
                 )
             }
         }
