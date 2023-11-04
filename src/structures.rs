@@ -216,30 +216,20 @@ pub fn get_environment_block_from_xy(
     x: usize,
     y: usize,
     size: u8,
-    environmentblock_entities: &Res<EnviromentEntities>,
+    enviromentblock_entities: &Res<EnviromentEntities>,
 ) -> Vec<Block> {
     return if size > 1 {
-<<<<<<< HEAD
-        (x..=x + size as usize - 1)
-            .flat_map(|x_val| (y..=y + size as usize - 1).map(move |y_val| (x_val, y_val)))
-            .map(|(x_i, y_i)| {
-                match environmentblock_entities.map.get(&HashSetFloat {
-                    x: unsafe { FF32::new(x_i as f32) },
-                    y: unsafe { FF32::new(y_i as f32) },
-                }) {
-=======
         get_all_coordinates(x, y, size)
             .iter()
             .map(
                 |hashsetfloat| match enviromentblock_entities.map.get(hashsetfloat) {
->>>>>>> 2237bdb (Added Output to input devices)
                     Some(block) => block.block,
                     None => Block::Nothing,
                 },
             )
             .collect()
     } else {
-        vec![match environmentblock_entities.map.get(&HashSetFloat {
+        vec![match enviromentblock_entities.map.get(&HashSetFloat {
             x: unsafe { FF32::new(x as f32) },
             y: unsafe { FF32::new(y as f32) },
         }) {

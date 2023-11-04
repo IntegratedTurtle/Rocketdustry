@@ -5,7 +5,7 @@ use crate::components::HashSetFloat;
 use crate::components::Structure;
 use crate::items::get_item_direction;
 use crate::mapsetup::Block;
-use crate::ressources::StructureEntities;
+use crate::resources::StructureEntities;
 use crate::structures::random_item;
 use crate::structures::spawn_structure;
 use crate::structures::Facing;
