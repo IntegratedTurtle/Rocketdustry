@@ -67,7 +67,7 @@ impl Structure {
             for i in 0..size {
                 outputvec.insert(HashSetFloat {
                     x: x + i as f32,
-                    y: y - size as f32,
+                    y: y - 1.0 as f32,
                 });
             }
         }
@@ -83,11 +83,11 @@ impl Structure {
             for i in 0..size {
                 outputvec.insert(HashSetFloat {
                     x: x + i as f32,
-                    y: y + 1.0,
+                    y: y + size as f32,
                 });
             }
         }
-        return outputvec;
+        outputvec
     }
 }
 
