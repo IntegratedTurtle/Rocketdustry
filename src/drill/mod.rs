@@ -40,7 +40,7 @@ fn make_drill(
     structure_query: Query<(&Structure, Entity)>,
     mut structure_create_event: EventReader<StructureCreateEvent>,
 ) {
-    for _ev in &mut structure_create_event {
+    for _ev in &mut structure_create_event.read() {
         for (structure, entity) in structure_query.iter() {
             if structure.structure == STRUCTURETYPE {
                 commands.entity(entity).insert(Drill {});
@@ -54,6 +54,7 @@ fn drill(drills_query: Query<&Structure, With<Drill>>,
          time: Res<Time>,
          mut input_device_query: Query<&mut InputAble>,
          structure_entities: Res<StructureEntities>,
+         // world: &mut World
 ) {
     for drill in drills_query.iter() {
         // Get the most used Block
@@ -84,7 +85,7 @@ fn drill(drills_query: Query<&Structure, With<Drill>>,
     }
 }
 
-fn add_item_to_inputable(
+pub fn add_item_to_inputable(
     output: &Structure,
     structure_entities: &Res<StructureEntities>,
     input_device_query: &mut Query<&mut InputAble>,

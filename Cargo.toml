@@ -8,7 +8,7 @@ edition = "2021"
 channel = "nightly"
 
 [dependencies]
-bevy = { version = "0.11.3", features = ["dynamic_linking"] }
+bevy = { version = "0.12", features = ["dynamic_linking"] }
 image = "0.24.7"
 ordered-float = "4.1.1"
 rand = "0.8.5"

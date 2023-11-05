@@ -1,7 +1,9 @@
 use bevy::ecs::query;
+use bevy::ecs::world;
 use bevy::prelude::*;
 
 use crate::components::Structure;
+use crate::drill::add_item_to_inputable;
 use crate::mapsetup::Block;
 use crate::structures::random_item;
 use crate::structures::AdditionalInformation;
@@ -14,12 +16,25 @@ pub const SIZE: u8 = 1;
 pub const SPRITENAME: &str = "sprites/Conveyor.png";
 pub const PIXLEVALUE: [u8; 3] = [100, 100, 100];
 const STRUCTURETYPE: StructureType = StructureType::Conveyor;
+const CONVEYORSPEED: f32 = 0.1;
 
 use crate::items::ItemType;
 use crate::structures::Facing;
 use crate::structures::InputAble;
 
 pub struct ConveyorPlugin;
+
+#[derive(Resource)]
+struct MoveTimer {
+    timer: Timer,
+}
+impl Default for MoveTimer {
+    fn default() -> Self {
+        MoveTimer {
+            timer: Timer::from_seconds(CONVEYORSPEED, TimerMode::Repeating),
+        }
+    }
+}
 
 #[derive(Component)]
 struct Conveyor {
@@ -31,7 +46,8 @@ struct Conveyor {
 
 impl Plugin for ConveyorPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (make_conveyor, print_items));
+        app.init_resource::<MoveTimer>()
+            .add_systems(Update, (make_conveyor, print_items, tick_move_timer));
     }
 }
 
@@ -40,7 +56,7 @@ fn make_conveyor(
     mut structure_query: Query<(&mut Transform, &Structure, Entity, &AdditionalInformation)>,
     mut structure_create_event: EventReader<StructureCreateEvent>,
 ) {
-    for _ev in &mut structure_create_event {
+    for _ev in &mut structure_create_event.read() {
         for (mut transform, structure, entity, additional_info) in structure_query.iter_mut() {
             if structure.structure == STRUCTURETYPE {
                 let facing = additional_information_to_facing(additional_info.value);
@@ -109,6 +125,42 @@ fn get_input_facing(facing: Facing) -> Vec<Facing> {
         Facing::Down => vec![Facing::Left, Facing::Right, Facing::Down],
         Facing::Left => vec![Facing::Up, Facing::Left, Facing::Down],
         Facing::Right => vec![Facing::Right, Facing::Up, Facing::Down],
+    }
+}
+
+fn tick_move_timer(mut timer: ResMut<MoveTimer>, time: Res<Time>) {
+    timer.timer.tick(time.delta());
+}
+
+fn post_item_to_next_place(
+    mut conveyor_query: Query<(&mut Conveyor, &mut InputAble, &Structure)>,
+    timer: Res<MoveTimer>,
+    world: &mut World,
+) {
+    if timer.timer.finished() {
+        conveyor_query
+            .iter_mut()
+            .for_each(|(mut conveyor, mut input, structure)| {
+                if conveyor.place_3 != ItemType::Nothing {
+                    todo!("Send Item to next input device")
+                }
+                if conveyor.place_3 == ItemType::Nothing && conveyor.place_2 != ItemType::Nothing {
+                    conveyor.place_3 = conveyor.place_2;
+                    conveyor.place_2 = ItemType::Nothing;
+                }
+                if conveyor.place_2 == ItemType::Nothing && conveyor.place_1 != ItemType::Nothing {
+                    conveyor.place_2 = conveyor.place_1;
+                    conveyor.place_1 = ItemType::Nothing;
+                }
+                if conveyor.place_1 == ItemType::Nothing && conveyor.place_0 != ItemType::Nothing {
+                    conveyor.place_1 = conveyor.place_0;
+                    conveyor.place_1 = ItemType::Nothing;
+                }
+                if conveyor.place_0 == ItemType::Nothing && input.item != ItemType::Nothing {
+                    conveyor.place_0 = input.item;
+                    input.item = ItemType::Nothing;
+                }
+            })
     }
 }
 
